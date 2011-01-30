@@ -1,8 +1,11 @@
 ﻿<Window x:Class="Structurer.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525">
+        Title="Structurer" Height="374" Width="525" Background="Gray">
     <Grid>
-        
+        <TextBox Name="BaseDir" Height="22" VerticalAlignment="Top" Margin="10,10,95,0">~\Desktop</TextBox>
+        <Button VerticalAlignment="Top" HorizontalAlignment="Right" Margin="10" Height="22" Width="80">Browse</Button>
+        <TextBox Name="Structure" AcceptsReturn="True" Margin="10,42,10,40"></TextBox>
+        <Button VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10" Height="22" Width="105" Click="CreateStructure">Create Structure</Button>
     </Grid>
 </Window>

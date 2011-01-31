@@ -4,7 +4,7 @@
         Title="Structurer" Height="374" Width="525" Background="Gray">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="22" />
+            <RowDefinition Height="28" />
             <RowDefinition Height="50" />
             <RowDefinition Height="229*" />
             <RowDefinition Height="34" />
@@ -22,14 +22,15 @@
             </MenuItem>
         </Menu>
         <Label Grid.Row="1" Margin="6,0,0,0" Foreground="White">Base Path:</Label>
-        <TextBox Name="BaseDir" Height="22" VerticalAlignment="Top" Margin="10,25,95,0" Grid.Row="1">~\Desktop</TextBox>
-        <Button VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,25,10,0" Height="22" Width="80" Click="SelectBasePath" Grid.Row="1">Browse</Button>
+        <TextBox Name="BaseDir" Height="22" VerticalAlignment="Top" Margin="10,25,12,0" Grid.Row="1">~\Desktop</TextBox>
+        <Button VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,11,0" Height="22" Width="80" Click="SelectBasePath" Grid.Row="1">Browse</Button>
         <Label Foreground="White" Margin="6,2,0,0" Grid.Row="2" Grid.RowSpan="2">Structure:</Label>
-        <ComboBox Grid.Row="2" Height="23" HorizontalAlignment="Right" VerticalAlignment="Top" Width="100" Name="Templates" Margin="0,4,10,0">
+        <ComboBox Grid.Row="2" Height="23" HorizontalAlignment="Right" VerticalAlignment="Top" Width="127" Name="Templates" Margin="0,4,11,0">
             <Separator />
         </ComboBox>
-        <TextBox Name="Structure" AcceptsReturn="True" Margin="10,30,10,6" Grid.Row="2"></TextBox>
-        <Label Name="Status" Grid.Row="3" Margin="6,4,0,0" Foreground="White"></Label>
-        <Button VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,10,10" Height="22" Width="80" Click="CreateStructure" Grid.Row="3">Create</Button>
+        <TextBox Name="Structure" AcceptsReturn="True" Margin="10,30,11,6" Grid.Row="2"></TextBox>
+        <Label Name="Status" Grid.Row="3" Margin="95,2,0,0" Foreground="White"></Label>
+        <CheckBox Name="AllFolders" Width="80" HorizontalAlignment="Left" Grid.Row="3" Foreground="White" Margin="10,7,10,13">All Folders</CheckBox>
+        <Button VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,10,8" Height="22" Width="80" Name="btnCreate" Click="CreateStructure" Grid.Row="3">Create</Button>
     </Grid>
 </Window>

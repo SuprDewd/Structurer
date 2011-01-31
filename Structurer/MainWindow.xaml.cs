@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -30,15 +31,30 @@ namespace Structurer
 
         private void CreateStructure(object sender, RoutedEventArgs e)
         {
+            this.btnCreate.IsEnabled = false;
+            this.Status.Content = "Creating Structure...";
             string baseDir = this.BaseDir.Text;
+            string structure = this.Structure.Text;
+            bool allFolders = this.AllFolders.IsChecked.HasValue && this.AllFolders.IsChecked.Value;
             if (baseDir.StartsWith("~\\")) baseDir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), baseDir.Substring(2));
 
-            StructureParser parser = new StructureParser();
-            parser.Expanders.Add("jquery", new Expander { Type = ExpanderType.OnlineFile, Value = "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js" });
-            parser.Expanders.Add("960gs", new Expander { Type = ExpanderType.LocalDirectory, Value = @"C:\Users\SuprDewd\Documents\Projects\Old\BASE\style\960.gs" });
-            parser.Expanders.Add("cssreset", new Expander { Type = ExpanderType.LocalFile, Value = @"C:\Users\SuprDewd\Documents\Projects\Old\BASE\style\reset.css" });
+            new Thread(() =>
+                       {
+                           StructureParser parser = new StructureParser { AllFolders = allFolders };
+                           parser.Expanders.Add("jquery", new Expander { Type = ExpanderType.OnlineFile, Value = "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js" });
+                           parser.Expanders.Add("960gs", new Expander { Type = ExpanderType.LocalDirectory, Value = @"C:\Users\SuprDewd\Documents\Projects\Old\BASE\style\960.gs" });
+                           parser.Expanders.Add("cssreset", new Expander { Type = ExpanderType.LocalFile, Value = @"C:\Users\SuprDewd\Documents\Projects\Old\BASE\style\reset.css" });
+                           parser.Expanders.Add("codeigniter", new Expander { Type = ExpanderType.OnlineFile, Value = @"http://codeigniter.com/download.php" });
+                           parser.Expanders.Add("cakephp", new Expander { Type = ExpanderType.OnlineFile, Value = @"https://github.com/cakephp/cakephp/tarball/1.3-dev" });
 
-            parser.Parse(this.Structure.Text, baseDir);
+                           bool ok = parser.Parse(structure, baseDir);
+
+                           this.Dispatcher.BeginInvoke(new Action(() =>
+                                                                  {
+                                                                      this.btnCreate.IsEnabled = true;
+                                                                      this.Status.Content = ok ? "Structure Created." : "Error while creating structure.";
+                                                                  }));
+                       }).Start();
         }
 
         private void SelectBasePath(object sender, RoutedEventArgs e)

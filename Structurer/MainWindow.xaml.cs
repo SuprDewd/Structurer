@@ -7,11 +7,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
+using WF = System.Windows.Forms;
 
 namespace Structurer
 {
@@ -36,6 +39,21 @@ namespace Structurer
             parser.Expanders.Add("cssreset", new Expander { Type = ExpanderType.LocalFile, Value = @"C:\Users\SuprDewd\Documents\Projects\Old\BASE\style\reset.css" });
 
             parser.Parse(this.Structure.Text, baseDir);
+        }
+
+        private void SelectBasePath(object sender, RoutedEventArgs e)
+        {
+            FolderBrowserDialog fb = new FolderBrowserDialog();
+
+            if (fb.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                this.BaseDir.Text = fb.SelectedPath;
+            }
+        }
+
+        private void ExitProgram(object sender, RoutedEventArgs e)
+        {
+            Environment.Exit(0);
         }
     }
 }

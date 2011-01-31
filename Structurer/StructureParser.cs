@@ -24,9 +24,13 @@ namespace Structurer
             this.ExpanderStart = ":";
         }
 
-        public bool Parse(string structure, string baseDirectory = null)
+        public bool OldParse(string structure, string baseDirectory = null)
         {
             if (baseDirectory == null) baseDirectory = this.BaseDirectory;
+
+            Stack<string> dirs = new Stack<string>();
+            dirs.Push(baseDirectory);
+            int lastIndent = 0;
 
             foreach (string command in structure.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
             {
@@ -42,12 +46,61 @@ namespace Structurer
                 int exp = cmd.LastIndexOf(this.ExpanderStart);
                 string expanderKey = exp != -1 ? cmd.Substring(exp + 1) : null;
                 cmd = exp != -1 ? cmd.Substring(0, exp) : cmd;
-                cmd = Path.Combine(baseDirectory, cmd);
 
                 string file = null;
                 if (!cmd.EndsWith("/")) file = cmd;
+
+                if (indent < lastIndent) dirs.Pop();
+
+                cmd = Path.Combine(dirs.Peek(), cmd);
                 string dir = Path.GetDirectoryName(cmd);
+                if (file == null)
+                {
+                    dirs.Push(dir);
+                }
+
                 Directory.CreateDirectory(dir);
+                if (file != null) file = Path.Combine(dir, file);
+
+                if (expanderKey != null)
+                {
+                    this.HandleExpander(expanderKey, dir, file);
+                }
+                else if (file != null)
+                {
+                    File.Create(file);
+                }
+
+                lastIndent = indent;
+            }
+
+            return true;
+        }
+
+        public bool Parse(string structure, string baseDirectory = null)
+        {
+            if (baseDirectory == null) baseDirectory = this.BaseDirectory;
+
+            string lastDir = baseDirectory;
+
+            foreach (string command in structure.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string cmd = command;
+
+                int exp = cmd.LastIndexOf(this.ExpanderStart);
+                string expanderKey = exp != -1 ? cmd.Substring(exp + 1) : null;
+                cmd = exp != -1 ? cmd.Substring(0, exp) : cmd;
+
+                bool useLast = cmd.StartsWith("/");
+                cmd = cmd.TrimStart('/');
+                cmd = Path.Combine(useLast ? lastDir : baseDirectory, cmd);
+                string dir = Path.GetDirectoryName(cmd);
+
+                Directory.CreateDirectory(dir);
+                string file = null;
+                if (!cmd.EndsWith("/")) file = cmd;
+
+                lastDir = dir;
 
                 if (expanderKey != null)
                 {
@@ -145,7 +198,9 @@ namespace Structurer
             try
             {
                 HttpWebRequest req = (HttpWebRequest)WebRequest.Create(value);
-                using (StreamReader sr = new StreamReader(req.GetResponse().GetResponseStream()))
+                WebResponse res = req.GetResponse();
+
+                using (StreamReader sr = new StreamReader(res.GetResponseStream()))
                 {
                     using (StreamWriter sw = new StreamWriter(file))
                     {

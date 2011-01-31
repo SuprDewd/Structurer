@@ -3,9 +3,33 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Structurer" Height="374" Width="525" Background="Gray">
     <Grid>
-        <TextBox Name="BaseDir" Height="22" VerticalAlignment="Top" Margin="10,10,95,0">~\Desktop</TextBox>
-        <Button VerticalAlignment="Top" HorizontalAlignment="Right" Margin="10" Height="22" Width="80">Browse</Button>
-        <TextBox Name="Structure" AcceptsReturn="True" Margin="10,42,10,40"></TextBox>
-        <Button VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10" Height="22" Width="105" Click="CreateStructure">Create Structure</Button>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="22" />
+            <RowDefinition Height="50" />
+            <RowDefinition Height="229*" />
+            <RowDefinition Height="34" />
+        </Grid.RowDefinitions>
+        <Menu Height="23px" VerticalAlignment="Top" Grid.RowSpan="2">
+            <MenuItem Header="File">
+                <MenuItem Header="Exit" Click="ExitProgram"></MenuItem>
+            </MenuItem>
+            <MenuItem Header="Edit"></MenuItem>
+            <MenuItem Header="Templates">
+                <MenuItem Header="Save Template..."></MenuItem>
+                <MenuItem Header="Manage Templates..."></MenuItem>
+                <Separator />
+                <MenuItem Header="Show Content Manager" />
+            </MenuItem>
+        </Menu>
+        <Label Grid.Row="1" Margin="6,0,0,0" Foreground="White">Base Path:</Label>
+        <TextBox Name="BaseDir" Height="22" VerticalAlignment="Top" Margin="10,25,95,0" Grid.Row="1">~\Desktop</TextBox>
+        <Button VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,25,10,0" Height="22" Width="80" Click="SelectBasePath" Grid.Row="1">Browse</Button>
+        <Label Foreground="White" Margin="6,2,0,0" Grid.Row="2" Grid.RowSpan="2">Structure:</Label>
+        <ComboBox Grid.Row="2" Height="23" HorizontalAlignment="Right" VerticalAlignment="Top" Width="100" Name="Templates" Margin="0,4,10,0">
+            <Separator />
+        </ComboBox>
+        <TextBox Name="Structure" AcceptsReturn="True" Margin="10,30,10,6" Grid.Row="2"></TextBox>
+        <Label Name="Status" Grid.Row="3" Margin="6,4,0,0" Foreground="White"></Label>
+        <Button VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,10,10" Height="22" Width="80" Click="CreateStructure" Grid.Row="3">Create</Button>
     </Grid>
 </Window>

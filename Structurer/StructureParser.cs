@@ -38,6 +38,7 @@ namespace Structurer
 
                 foreach (string command in structure.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
                 {
+                    if (command.StartsWith("#") || command.Trim() == "") continue;
                     string cmd = command.Replace('/', '\\');
 
                     int exp = cmd.LastIndexOf(this.ExpanderStart);

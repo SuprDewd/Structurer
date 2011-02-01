@@ -18,9 +18,11 @@ namespace Structurer
     /// </summary>
     public partial class NewTemplate : Window
     {
-        public NewTemplate()
+        public NewTemplate(string name = "", string structure = "")
         {
             InitializeComponent();
+            this.TemplateName.Text = name;
+            this.TemplateStructure.Text = structure;
         }
     }
 }

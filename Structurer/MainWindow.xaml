@@ -1,7 +1,7 @@
 ﻿<Window x:Class="Structurer.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Structurer" Height="374" Width="525" Background="Gray">
+        Title="Structurer" Height="374" Width="525" Background="Gray" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="28" />
@@ -15,7 +15,7 @@
             </MenuItem>
             <MenuItem Header="Edit"></MenuItem>
             <MenuItem Header="Templates">
-                <MenuItem Header="Save Template..."></MenuItem>
+                <MenuItem Click="MenuItem_Click" Header="Save Template..."></MenuItem>
                 <MenuItem Header="Manage Templates..."></MenuItem>
                 <Separator />
                 <MenuItem Header="Show Content Manager" />
@@ -25,9 +25,7 @@
         <TextBox Name="BaseDir" Height="22" VerticalAlignment="Top" Margin="10,25,12,0" Grid.Row="1">~\Desktop</TextBox>
         <Button VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,11,0" Height="22" Width="80" Click="SelectBasePath" Grid.Row="1">Browse</Button>
         <Label Foreground="White" Margin="6,2,0,0" Grid.Row="2" Grid.RowSpan="2">Structure:</Label>
-        <ComboBox Grid.Row="2" Height="23" HorizontalAlignment="Right" VerticalAlignment="Top" Width="127" Name="Templates" Margin="0,4,11,0">
-            <Separator />
-        </ComboBox>
+        <ComboBox SelectionChanged="Templates_SelectionChanged" Grid.Row="2" SelectedIndex="0" Height="23" HorizontalAlignment="Right" VerticalAlignment="Top" Width="127" Name="Templates" Margin="0,4,11,0"></ComboBox>
         <TextBox Name="Structure" AcceptsReturn="True" Margin="10,30,11,6" Grid.Row="2"></TextBox>
         <Label Name="Status" Grid.Row="3" Margin="95,2,0,0" Foreground="White"></Label>
         <CheckBox Name="AllFolders" Width="80" HorizontalAlignment="Left" Grid.Row="3" Foreground="White" Margin="10,7,10,13">All Folders</CheckBox>

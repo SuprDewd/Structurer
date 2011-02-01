@@ -27,6 +27,7 @@ namespace Structurer
         public MainWindow()
         {
             InitializeComponent();
+            this.UpdateTemplates();
         }
 
         private void CreateStructure(object sender, RoutedEventArgs e)
@@ -71,6 +72,44 @@ namespace Structurer
         private void ExitProgram(object sender, RoutedEventArgs e)
         {
             Environment.Exit(0);
+        }
+
+        private void Templates_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (this.Templates.SelectedItem == TemplateSeparator || this.Templates.SelectedItem == CustomTemplateItem) return;
+
+            if (this.Templates.SelectedItem == SaveTemplateItem) this.SaveTemplate();
+            // else if (this.Templates.SelectedItem == ManageTemplatesItem) return; // new NewTemplate(structure: this.Structure.Text).ShowDialog();
+
+            this.Templates.SelectedIndex = 0;
+        }
+
+        private ComboBoxItem CustomTemplateItem = new ComboBoxItem { Content = "Custom" };
+        private ComboBoxItem SaveTemplateItem = new ComboBoxItem { Content = "Save Template..." };
+        private ComboBoxItem ManageTemplatesItem = new ComboBoxItem { Content = "Manage Templates..." };
+        private Separator TemplateSeparator = new Separator();
+
+        private void UpdateTemplates()
+        {
+            this.Templates.Items.Clear();
+            this.Templates.Items.Add(CustomTemplateItem);
+
+            // Add templates..
+
+            this.Templates.Items.Add(TemplateSeparator);
+            this.Templates.Items.Add(SaveTemplateItem);
+            this.Templates.Items.Add(ManageTemplatesItem);
+            this.Templates.SelectedIndex = 0;
+        }
+
+        private void SaveTemplate()
+        {
+            new NewTemplate(structure: this.Structure.Text).ShowDialog();
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            this.SaveTemplate();
         }
     }
 }

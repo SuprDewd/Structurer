@@ -57,6 +57,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Expander.cs" />
+    <Compile Include="ExpanderTask.cs" />
     <Compile Include="ExpanderType.cs" />
     <Compile Include="StructureParser.cs" />
     <Page Include="MainWindow.xaml">

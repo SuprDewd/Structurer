@@ -46,6 +46,7 @@ namespace Structurer
                            parser.Expanders.Add("cssreset", new Expander { Type = ExpanderType.LocalFile, Value = @"C:\Users\SuprDewd\Documents\Projects\Old\BASE\style\reset.css" });
                            parser.Expanders.Add("codeigniter", new Expander { Type = ExpanderType.OnlineFile, Value = @"http://codeigniter.com/download.php" });
                            parser.Expanders.Add("cakephp", new Expander { Type = ExpanderType.OnlineFile, Value = @"https://github.com/cakephp/cakephp/tarball/1.3-dev" });
+                           parser.Expanders.Add("ltest", new Expander { Type = ExpanderType.OnlineFile, Value = @"http://localhost/Skilaverkefni1.zip" });
 
                            bool ok = parser.Parse(structure, baseDir);
 

@@ -124,7 +124,7 @@ namespace Structurer
                         DownloadArchive(exp.Value, dir, finished);
                         break;
                     case ExpanderType.LocalDirectory:
-                        finished(CopyDirectory(new DirectoryInfo(exp.Value), new DirectoryInfo(dir)));
+                        finished(MoveDirectory(new DirectoryInfo(exp.Value), new DirectoryInfo(dir)));
                         break;
                 }
             }
@@ -133,7 +133,7 @@ namespace Structurer
         private void DownloadArchive(string value, string file, Action<bool> callback)
         {
             string temp = Path.GetTempFileName();
-            this.DownloadFile(value, temp, (b) =>
+            this.DownloadFile(value, temp, b =>
             {
                 if (!b)
                 {
@@ -152,7 +152,7 @@ namespace Structurer
 
                 int folders = tempDir.GetDirectories().Length;
                 int files = tempDir.GetFiles().Length;
-                if (folders == 1 && files == 0)
+                if (folders == 1 && (files == 0 || (files == 1 && tempDir.GetFiles().First().Name == "pax_global_header")))
                 {
                     tempDir = tempDir.GetDirectories().First();
                 }
@@ -165,10 +165,27 @@ namespace Structurer
                     }
                 }
 
-                //this.MoveContents(tempDir, new DirectoryInfo(file));
-                this.CopyDirectory(tempDir, new DirectoryInfo(file));
-                Directory.Delete(tempFolder, true);
-                File.Delete(temp);
+                folders = tempDir.GetDirectories().Length;
+                files = tempDir.GetFiles().Length;
+                if (folders == 1 && (files == 0 || (files == 1 && tempDir.GetFiles().First().Name == "pax_global_header")))
+                {
+                    tempDir = tempDir.GetDirectories().First();
+                }
+
+                Action cleanUp = () =>
+                                 {
+                                     Directory.Delete(tempFolder, true);
+                                     File.Delete(temp);
+                                 };
+
+                if (!this.MoveDirectory(tempDir, new DirectoryInfo(file)))
+                {
+                    cleanUp();
+                    callback(false);
+                    return;
+                }
+
+                cleanUp();
                 callback(true);
             });
         }
@@ -178,26 +195,13 @@ namespace Structurer
             Process p7z = new Process();
             p7z.StartInfo.FileName = "7za.exe";
             p7z.StartInfo.Arguments = "x \"" + from + "\" -y -o\"" + to + "\"";
-            // p7z.StartInfo.CreateNoWindow = !p7z.StartInfo.CreateNoWindow;
+            p7z.StartInfo.CreateNoWindow = true;
             if (!p7z.Start()) return -1;
             p7z.WaitForExit();
             return p7z.ExitCode;
         }
 
-        private void MoveContents(DirectoryInfo fromDir, DirectoryInfo toDir)
-        {
-            foreach (FileInfo file in fromDir.GetFiles())
-            {
-                file.MoveTo(toDir.ToString());
-            }
-
-            foreach (DirectoryInfo dir in fromDir.GetDirectories())
-            {
-                dir.MoveTo(toDir.ToString());
-            }
-        }
-
-        private bool CopyDirectory(DirectoryInfo source, DirectoryInfo target)
+        private bool MoveDirectory(DirectoryInfo source, DirectoryInfo target)
         {
             try
             {
@@ -205,7 +209,8 @@ namespace Structurer
 
                 foreach (FileInfo fi in source.GetFiles())
                 {
-                    fi.CopyTo(Path.Combine(target.ToString(), fi.Name), true);
+                    string to = Path.Combine(target.ToString(), fi.Name);
+                    if (!File.Exists(to)) fi.MoveTo(to);
                 }
 
                 bool all = true;
@@ -213,7 +218,7 @@ namespace Structurer
                 foreach (DirectoryInfo diSourceSubDir in source.GetDirectories())
                 {
                     DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(diSourceSubDir.Name);
-                    if (!CopyDirectory(diSourceSubDir, nextTargetSubDir)) all = false;
+                    if (!MoveDirectory(diSourceSubDir, nextTargetSubDir)) all = false;
                 }
 
                 return all;
@@ -223,6 +228,30 @@ namespace Structurer
                 return false;
             }
         }
+
+        /*private bool MoveDirectory(DirectoryInfo source, DirectoryInfo target)
+        {
+            try
+            {
+                if (!Directory.Exists(target.FullName)) Directory.CreateDirectory(target.FullName);
+
+                foreach (FileInfo fi in source.GetFiles())
+                {
+                    fi.MoveTo(Path.Combine(target.ToString(), fi.Name));
+                }
+
+                foreach (DirectoryInfo diSourceSubDir in source.GetDirectories())
+                {
+                    diSourceSubDir.MoveTo(Path.Combine(target.ToString(), diSourceSubDir.Name));
+                }
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }*/
 
         private bool CopyFile(string value, string file)
         {

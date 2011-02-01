@@ -1,2 +1,5 @@
 /*.ReSharper.user
 /Structurer/obj/
+/Structurer.suo
+/Structurer/bin/Debug/Structurer.pdb
+/Structurer/bin/Debug/Structurer.vshost.*

@@ -99,20 +99,21 @@ namespace Structurer
             return true;
         }
 
-        public bool HandleExpander(Expander exp, string dir, string file, Action<bool> finished)
+        public void HandleExpander(Expander exp, string dir, string file, Action<bool> finished)
         {
             if (file != null)
             {
                 switch (exp.Type)
                 {
                     case ExpanderType.Text:
-                        finished(true);
-                        return WriteTextToFile(exp.Value, file);
+                        finished(WriteTextToFile(exp.Value, file));
+                        break;
                     case ExpanderType.OnlineFile:
-                        return DownloadFile(exp.Value, file, finished);
+                        finished(DownloadFile(exp.Value, file, finished));
+                        break;
                     case ExpanderType.LocalFile:
-                        finished(true);
-                        return CopyFile(exp.Value, file);
+                        finished(CopyFile(exp.Value, file));
+                        break;
                 }
             }
             else
@@ -121,14 +122,12 @@ namespace Structurer
                 {
                     case ExpanderType.OnlineFile:
                         DownloadArchive(exp.Value, dir, finished);
-                        return true;
+                        break;
                     case ExpanderType.LocalDirectory:
-                        finished(true);
-                        return CopyDirectory(new DirectoryInfo(exp.Value), new DirectoryInfo(dir));
+                        finished(CopyDirectory(new DirectoryInfo(exp.Value), new DirectoryInfo(dir)));
+                        break;
                 }
             }
-
-            return false;
         }
 
         private void DownloadArchive(string value, string file, Action<bool> callback)

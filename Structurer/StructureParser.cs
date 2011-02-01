@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 
 namespace Structurer
 {
@@ -35,6 +37,7 @@ namespace Structurer
                 if (baseDirectory == null) baseDirectory = this.BaseDirectory;
 
                 string lastDir = baseDirectory;
+                Queue<ExpanderTask> tasks = new Queue<ExpanderTask>();
 
                 foreach (string command in structure.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
                 {
@@ -61,15 +64,31 @@ namespace Structurer
 
                     lastDir = dir;
 
-                    if (expanderKey != null)
+                    if (expanderKey != null && this.Expanders.ContainsKey(expanderKey))
                     {
-                        this.HandleExpander(expanderKey, dir, file);
+                        tasks.Enqueue(new ExpanderTask(this.Expanders[expanderKey], dir, file));
                     }
                     else if (file != null)
                     {
                         File.Create(file);
                     }
                 }
+
+                int numTasks = 0;
+                bool error = false;
+                while (tasks.Any())
+                {
+                    ExpanderTask task = tasks.Dequeue();
+                    numTasks++;
+                    this.HandleExpander(task.Expander, task.Directory, task.File, (b) => { numTasks--; if (!b) error = true; });
+                }
+
+                while (numTasks > 0)
+                {
+                    Thread.Sleep(250);
+                }
+
+                return !error;
             }
             catch (Exception)
             {
@@ -79,20 +98,19 @@ namespace Structurer
             return true;
         }
 
-        public bool HandleExpander(string expander, string dir, string file)
+        public bool HandleExpander(Expander exp, string dir, string file, Action<bool> finished)
         {
-            if (!this.Expanders.ContainsKey(expander)) return false;
-            Expander exp = this.Expanders[expander];
-
             if (file != null)
             {
                 switch (exp.Type)
                 {
                     case ExpanderType.Text:
+                        finished(true);
                         return WriteTextToFile(exp.Value, file);
                     case ExpanderType.OnlineFile:
-                        return DownloadFile(exp.Value, file);
+                        return DownloadFile(exp.Value, file, finished);
                     case ExpanderType.LocalFile:
+                        finished(true);
                         return CopyFile(exp.Value, file);
                 }
             }
@@ -101,8 +119,10 @@ namespace Structurer
                 switch (exp.Type)
                 {
                     case ExpanderType.OnlineFile:
-                        return DownloadArchive(exp.Value, dir);
+                        DownloadArchive(exp.Value, dir, finished);
+                        return true;
                     case ExpanderType.LocalDirectory:
+                        finished(true);
                         return CopyDirectory(new DirectoryInfo(exp.Value), new DirectoryInfo(dir));
                 }
             }
@@ -110,36 +130,47 @@ namespace Structurer
             return false;
         }
 
-        private bool DownloadArchive(string value, string file)
+        private void DownloadArchive(string value, string file, Action<bool> callback)
         {
             string temp = Path.GetTempFileName();
-            this.DownloadFile(value, temp);
-            string tempFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            DirectoryInfo tempDir = Directory.CreateDirectory(tempFolder);
-
-            if (this.Extract(temp, tempFolder) != 0) return false;
-
-            int folders = tempDir.GetDirectories().Length;
-            int files = tempDir.GetFiles().Length;
-            if (folders == 1 && files == 0)
+            this.DownloadFile(value, temp, (b) =>
             {
-                tempDir = tempDir.GetDirectories().First();
-            }
-            else if (folders == 0 && files == 1)
-            {
-                FileInfo f = tempDir.GetFiles().First();
-                if (this.Extract(f.FullName, tempFolder) == 0)
+                if (!b)
                 {
-                    f.Delete();
+                    callback(false);
+                    return;
                 }
-            }
 
-            //this.MoveContents(tempDir, new DirectoryInfo(file));
-            this.CopyDirectory(tempDir, new DirectoryInfo(file));
-            Directory.Delete(tempFolder, true);
-            File.Delete(temp);
+                string tempFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+                DirectoryInfo tempDir = Directory.CreateDirectory(tempFolder);
 
-            return true;
+                if (this.Extract(temp, tempFolder) != 0)
+                {
+                    callback(false);
+                    return;
+                }
+
+                int folders = tempDir.GetDirectories().Length;
+                int files = tempDir.GetFiles().Length;
+                if (folders == 1 && files == 0)
+                {
+                    tempDir = tempDir.GetDirectories().First();
+                }
+                else if (folders == 0 && files == 1)
+                {
+                    FileInfo f = tempDir.GetFiles().First();
+                    if (this.Extract(f.FullName, tempFolder) == 0)
+                    {
+                        f.Delete();
+                    }
+                }
+
+                //this.MoveContents(tempDir, new DirectoryInfo(file));
+                this.CopyDirectory(tempDir, new DirectoryInfo(file));
+                Directory.Delete(tempFolder, true);
+                File.Delete(temp);
+                callback(true);
+            });
         }
 
         private int Extract(string from, string to)
@@ -207,28 +238,13 @@ namespace Structurer
             return true;
         }
 
-        private bool DownloadFile(string value, string file)
+        private bool DownloadFile(string value, string file, Action<bool> callback)
         {
             try
             {
-                /*HttpWebRequest req = (HttpWebRequest)WebRequest.Create(value);
-                WebResponse res = req.GetResponse();
-
-                using (StreamReader sr = new StreamReader(res.GetResponseStream()))
-                {
-                    using (StreamWriter sw = new StreamWriter(file))
-                    {
-                        int bufferSize = 8192, read;
-                        char[] buffer = new char[bufferSize];
-
-                        while ((read = sr.Read(buffer, 0, bufferSize)) > 0)
-                        {
-                            sw.Write(buffer, 0, read);
-                        }
-                    }
-                }*/
-
-                new WebClient().DownloadFile(value, file);
+                WebClient WC = new WebClient();
+                WC.DownloadFileCompleted += (o, h) => callback(!h.Cancelled && h.Error == null);
+                WC.DownloadFileAsync(new Uri(value), file);
             }
             catch (Exception)
             {

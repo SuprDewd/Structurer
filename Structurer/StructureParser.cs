@@ -75,18 +75,18 @@ namespace Structurer
                     }
                 }
 
-                int numTasks = 0;
+                int numTasks = tasks.Count;
                 bool error = false;
+                object o = new object();
                 while (tasks.Any())
                 {
                     ExpanderTask task = tasks.Dequeue();
-                    numTasks++;
-                    this.HandleExpander(task.Expander, task.Directory, task.File, (b) => { numTasks--; if (!b) error = true; });
+                    this.HandleExpander(task.Expander, task.Directory, task.File, b => { lock (o) numTasks--; if (!b) error = true; });
                 }
 
                 while (numTasks > 0)
                 {
-                    Thread.Sleep(250);
+                    Thread.Sleep(500);
                 }
 
                 return !error;
@@ -95,8 +95,6 @@ namespace Structurer
             {
                 return false;
             }
-
-            return true;
         }
 
         public void HandleExpander(Expander exp, string dir, string file, Action<bool> finished)
@@ -109,7 +107,7 @@ namespace Structurer
                         finished(WriteTextToFile(exp.Value, file));
                         break;
                     case ExpanderType.OnlineFile:
-                        finished(DownloadFile(exp.Value, file, finished));
+                        DownloadFile(exp.Value, file, finished);
                         break;
                     case ExpanderType.LocalFile:
                         finished(CopyFile(exp.Value, file));
@@ -195,6 +193,7 @@ namespace Structurer
             Process p7z = new Process();
             p7z.StartInfo.FileName = "7za.exe";
             p7z.StartInfo.Arguments = "x \"" + from + "\" -y -o\"" + to + "\"";
+            p7z.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             p7z.StartInfo.CreateNoWindow = true;
             if (!p7z.Start()) return -1;
             p7z.WaitForExit();
@@ -228,30 +227,6 @@ namespace Structurer
                 return false;
             }
         }
-
-        /*private bool MoveDirectory(DirectoryInfo source, DirectoryInfo target)
-        {
-            try
-            {
-                if (!Directory.Exists(target.FullName)) Directory.CreateDirectory(target.FullName);
-
-                foreach (FileInfo fi in source.GetFiles())
-                {
-                    fi.MoveTo(Path.Combine(target.ToString(), fi.Name));
-                }
-
-                foreach (DirectoryInfo diSourceSubDir in source.GetDirectories())
-                {
-                    diSourceSubDir.MoveTo(Path.Combine(target.ToString(), diSourceSubDir.Name));
-                }
-
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }*/
 
         private bool CopyFile(string value, string file)
         {

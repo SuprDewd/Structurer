@@ -56,12 +56,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AppSettings.cs" />
     <Compile Include="Expander.cs" />
     <Compile Include="ExpanderTask.cs" />
     <Compile Include="ExpanderType.cs" />
     <Compile Include="NewTemplate.xaml.cs">
       <DependentUpon>NewTemplate.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SerializableDictionary.cs" />
     <Compile Include="StructureParser.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

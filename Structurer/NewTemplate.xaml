@@ -12,7 +12,7 @@
         <TextBox Name="TemplateName" Height="22" Margin="10,30,10,0" VerticalAlignment="Top"></TextBox>
         <Label Grid.Row="1" Foreground="White" Margin="5,0,5,21">Contents:</Label>
         <TextBox Name="TemplateStructure" Grid.Row="1" Margin="10,27,10,6"></TextBox>
-        <Button Content="Cancel" Grid.Row="2" Height="23" HorizontalAlignment="Right" Margin="0,0,91,12" VerticalAlignment="Bottom" Width="75" />
-        <Button Content="Save" Grid.Row="2" HorizontalAlignment="Right" Margin="0,0,10,12" Width="75" Height="23" VerticalAlignment="Bottom" />
+        <Button Content="Cancel" Grid.Row="2" Height="23" HorizontalAlignment="Right" Margin="0,0,91,12" VerticalAlignment="Bottom" Width="75" Click="Button_Click" />
+        <Button Content="Save" Grid.Row="2" HorizontalAlignment="Right" Margin="0,0,10,12" Width="75" Height="23" VerticalAlignment="Bottom" Click="Button_Click_1" />
     </Grid>
 </Window>

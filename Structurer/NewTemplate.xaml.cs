@@ -18,11 +18,28 @@ namespace Structurer
     /// </summary>
     public partial class NewTemplate : Window
     {
-        public NewTemplate(string name = "", string structure = "")
+        private Func<string, string, bool> Save { get; set; }
+
+        public NewTemplate(Func<string, string, bool> save, string name = "", string structure = "")
         {
+            this.Save = save;
             InitializeComponent();
             this.TemplateName.Text = name;
             this.TemplateStructure.Text = structure;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (this.Save(this.TemplateName.Text, this.TemplateStructure.Text)) this.Close();
+            else
+            {
+                MessageBox.Show("Template name in use." + Environment.NewLine + "Please specify another.", "Template name taken", MessageBoxButton.OK);
+            }
         }
     }
 }

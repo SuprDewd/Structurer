@@ -81,20 +81,12 @@ namespace Structurer
                 while (tasks.Any())
                 {
                     ExpanderTask task = tasks.Dequeue();
-                    this.HandleExpander(task.Expander, task.Directory, task.File, b =>
-                                                                                  {
-                                                                                      lock (o)
-                                                                                      {
-                                                                                          numTasks--;
-                                                                                      }
-
-                                                                                      if (!b) error = true;
-                                                                                  });
+                    this.HandleExpander(task.Expander, task.Directory, task.File, b => { lock (o) numTasks--; if (!b) error = true; });
                 }
 
                 while (numTasks > 0)
                 {
-                    Thread.Sleep(250);
+                    Thread.Sleep(500);
                 }
 
                 return !error;

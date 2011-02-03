@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<AppSettings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Templates>
+    <item>
+      <key>
+        <string>Blaasdawe</string>
+      </key>
+      <value>
+        <string>blaaa</string>
+      </value>
+    </item>
+    <item>
+      <key>
+        <string>Base</string>
+      </key>
+      <value>
+        <string>index.html
+js/scripts.js
+css/styles.css</string>
+      </value>
+    </item>
+  </Templates>
+</AppSettings>

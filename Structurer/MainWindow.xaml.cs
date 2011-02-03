@@ -24,9 +24,14 @@ namespace Structurer
     /// </summary>
     public partial class MainWindow : Window
     {
+        private AppSettings Settings { get; set; }
+
+        private const string SettingFile = "settings.xml";
+
         public MainWindow()
         {
             InitializeComponent();
+            this.Settings = AppSettings.Load(SettingFile);
             this.UpdateTemplates();
         }
 
@@ -34,7 +39,7 @@ namespace Structurer
         {
             this.btnCreate.IsEnabled = false;
             this.Status.Content = "Creating Structure...";
-            string baseDir = this.BaseDir.Text;
+            string baseDir = this.BaseDir.Text.Replace('/', '\\');
             string structure = this.Structure.Text;
             bool allFolders = this.AllFolders.IsChecked.HasValue && this.AllFolders.IsChecked.Value;
             if (baseDir.StartsWith("~\\")) baseDir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), baseDir.Substring(2));
@@ -42,6 +47,21 @@ namespace Structurer
             new Thread(() =>
                        {
                            StructureParser parser = new StructureParser { AllFolders = allFolders };
+                           parser.Expanders.Add("beginhtml", new Expander
+                           {
+                               Type = ExpanderType.Text,
+                               Value = @"<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset=" + '"' + "utf-8" + '"' + @" />
+        <title></title>
+    </head>
+    <body>
+
+    </body>
+</html>"
+                           });
+                           parser.Expanders.Add("wp", new Expander { Type = ExpanderType.OnlineFile, Value = "http://wordpress.org/latest.zip" });
                            parser.Expanders.Add("jquery", new Expander { Type = ExpanderType.OnlineFile, Value = "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js" });
                            parser.Expanders.Add("960gs", new Expander { Type = ExpanderType.LocalDirectory, Value = @"C:\Users\SuprDewd\Documents\Projects\Old\BASE\style\960.gs" });
                            parser.Expanders.Add("cssreset", new Expander { Type = ExpanderType.LocalFile, Value = @"C:\Users\SuprDewd\Documents\Projects\Old\BASE\style\reset.css" });
@@ -71,15 +91,18 @@ namespace Structurer
 
         private void ExitProgram(object sender, RoutedEventArgs e)
         {
+            this.SaveSettings();
             Environment.Exit(0);
         }
+
+        #region Templates
 
         private void Templates_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (this.Templates.SelectedItem == TemplateSeparator || this.Templates.SelectedItem == CustomTemplateItem) return;
 
-            if (this.Templates.SelectedItem == SaveTemplateItem) this.SaveTemplate();
-            // else if (this.Templates.SelectedItem == ManageTemplatesItem) return; // new NewTemplate(structure: this.Structure.Text).ShowDialog();
+            if (this.Templates.SelectedItem == SaveTemplateItem) this.SaveTemplate(); this.Templates.SelectedIndex = 0;
+            // else if (this.Templates.SelectedItem == ManageTemplatesItem) return;
 
             this.Templates.SelectedIndex = 0;
         }
@@ -95,6 +118,20 @@ namespace Structurer
             this.Templates.Items.Add(CustomTemplateItem);
 
             // Add templates..
+            foreach (KeyValuePair<string, string> template in this.Settings.Templates)
+            {
+                ComboBoxItem item = new ComboBoxItem
+                {
+                    Content = template.Key
+                };
+
+                item.Selected += (o, ea) =>
+                           {
+                               this.Structure.Text = template.Value;
+                           };
+
+                this.Templates.Items.Add(item);
+            }
 
             this.Templates.Items.Add(TemplateSeparator);
             this.Templates.Items.Add(SaveTemplateItem);
@@ -104,12 +141,43 @@ namespace Structurer
 
         private void SaveTemplate()
         {
-            new NewTemplate(structure: this.Structure.Text).ShowDialog();
+            new NewTemplate(this.AddTemplate, structure: this.Structure.Text).ShowDialog();
+        }
+
+        private bool AddTemplate(string key, string value)
+        {
+            if (this.Settings.Templates.ContainsKey(key)) return false;
+            this.Settings.Templates.Add(key, value);
+            this.UpdateTemplates();
+            return true;
+        }
+
+        private bool DeleteTemplate(string key)
+        {
+            if (this.Settings.Templates.Remove(key))
+            {
+                this.UpdateTemplates();
+                return true;
+            }
+
+            return false;
+        }
+
+        #endregion Templates
+
+        private bool SaveSettings()
+        {
+            return this.Settings.Save(SettingFile);
         }
 
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
             this.SaveTemplate();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            this.SaveSettings();
         }
     }
 }

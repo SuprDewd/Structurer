@@ -39,7 +39,7 @@ namespace Structurer
                 string lastDir = baseDirectory;
                 Queue<ExpanderTask> tasks = new Queue<ExpanderTask>();
 
-                foreach (string command in structure.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
+                foreach (string command in structure.Split(new[] { Environment.NewLine, "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries))
                 {
                     if (command.StartsWith("#") || command.Trim() == "") continue;
                     string cmd = command.Replace('/', '\\');
@@ -122,7 +122,7 @@ namespace Structurer
                         DownloadArchive(exp.Value, dir, finished);
                         break;
                     case ExpanderType.LocalDirectory:
-                        finished(MoveDirectory(new DirectoryInfo(exp.Value), new DirectoryInfo(dir)));
+                        finished(MoveDirectory(new DirectoryInfo(exp.Value), new DirectoryInfo(dir), false));
                         break;
                 }
             }
@@ -176,7 +176,7 @@ namespace Structurer
                                      File.Delete(temp);
                                  };
 
-                if (!this.MoveDirectory(tempDir, new DirectoryInfo(file)))
+                if (!this.MoveDirectory(tempDir, new DirectoryInfo(file), true))
                 {
                     cleanUp();
                     callback(false);
@@ -200,7 +200,7 @@ namespace Structurer
             return p7z.ExitCode;
         }
 
-        private bool MoveDirectory(DirectoryInfo source, DirectoryInfo target)
+        private bool MoveDirectory(DirectoryInfo source, DirectoryInfo target, bool move)
         {
             try
             {
@@ -209,7 +209,7 @@ namespace Structurer
                 foreach (FileInfo fi in source.GetFiles())
                 {
                     string to = Path.Combine(target.ToString(), fi.Name);
-                    if (!File.Exists(to)) fi.MoveTo(to);
+                    if (!File.Exists(to)) if (move) fi.MoveTo(to); else fi.CopyTo(to);
                 }
 
                 bool all = true;
@@ -217,7 +217,7 @@ namespace Structurer
                 foreach (DirectoryInfo diSourceSubDir in source.GetDirectories())
                 {
                     DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(diSourceSubDir.Name);
-                    if (!MoveDirectory(diSourceSubDir, nextTargetSubDir)) all = false;
+                    if (!MoveDirectory(diSourceSubDir, nextTargetSubDir, move)) all = false;
                 }
 
                 return all;
